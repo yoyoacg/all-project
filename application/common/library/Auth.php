@@ -131,14 +131,15 @@ class Auth
      * @param array $extend    扩展参数
      * @return boolean
      */
-    public function register($username, $password, $email = '', $mobile = '', $extend = [])
+    public function register($username, $password,$type, $email = '', $mobile = '', $extend = [])
     {
         // 检测用户名或邮箱、手机号是否存在
-        if (User::getByUsername($username))
-        {
+        $is_user = User::get(['username'=>$username,'type'=>$type]);
+        if($is_user){
             $this->setError('Username already exist');
             return FALSE;
         }
+
         if ($email && User::getByEmail($email))
         {
             $this->setError('Email already exist');
@@ -161,6 +162,7 @@ class Auth
             'level'    => 1,
             'score'    => 0,
             'avatar'   => '',
+            'type'     => $type
         ];
         $params = array_merge($data, [
             'nickname'  => $username,
@@ -226,10 +228,10 @@ class Auth
      * @param string    $password   密码
      * @return boolean
      */
-    public function login($account, $password)
+    public function login($account, $password,$type)
     {
         $field = Validate::is($account, 'email') ? 'email' : (Validate::regex($account, '/^1\d{10}$/') ? 'mobile' : 'username');
-        $user = User::get([$field => $account]);
+        $user = User::get([$field => $account,'type'=>$type]);
         if (!$user)
         {
             $this->setError('Account is incorrect');

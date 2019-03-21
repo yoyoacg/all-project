@@ -38,17 +38,26 @@ class User extends Api
      */
     public function login()
     {
-        $account = $this->request->request('account');
-        $password = $this->request->request('password');
+        $account = $this->request->post('account');
+        $password = $this->request->post('password');
+        $type = $this->request->post('type');
         if (!$account || !$password)
         {
             $this->error(__('Invalid parameters'));
         }
-        $ret = $this->auth->login($account, $password);
+        $ret = $this->auth->login($account, $password,$type);
         if ($ret)
         {
-            $data = ['userinfo' => $this->auth->getUserinfo()];
-            $this->success(__('Logged in successful'), $data,200);
+            $userinfo = $this->auth->getUserinfo();
+            if($userinfo['avatar']=='/assets/img/avatar.png') $userinfo['avatar']='';
+            $result = [
+                'username'=>$userinfo['username'],
+                'nickname'=>$userinfo['nickname'],
+                'mobile'=>$userinfo['mobile'],
+                'avatar'=>$userinfo['avatar'],
+                'token'=>$userinfo['token'],
+            ];
+            $this->success(__('Logged in successful'), $result,200);
         }
         else
         {
@@ -91,8 +100,16 @@ class User extends Api
         if ($ret)
         {
             Sms::flush($mobile, 'mobilelogin');
-            $data = ['userinfo' => $this->auth->getUserinfo()];
-            $this->success(__('Logged in successful'), $data);
+            $userinfo = $this->auth->getUserinfo();
+            if($userinfo['avatar']=='/assets/img/avatar.png') $userinfo['avatar']='';
+            $result = [
+                'username'=>$userinfo['username'],
+                'nickname'=>$userinfo['nickname'],
+                'mobile'=>$userinfo['mobile'],
+                'avatar'=>$userinfo['avatar'],
+                'token'=>$userinfo['token'],
+            ];
+            $this->success(__('Logged in successful'), $result,200);
         }
         else
         {
@@ -110,10 +127,11 @@ class User extends Api
      */
     public function register()
     {
-        $username = $this->request->request('username');
-        $password = $this->request->request('password');
-        $email = $this->request->request('email');
-        $mobile = $this->request->request('mobile');
+        $username = $this->request->post('username');
+        $password = $this->request->post('password');
+        $email = $this->request->post('email','');
+        $mobile = $this->request->post('mobile','');
+        $type = $this->request->post('type');
         if (!$username || !$password)
         {
             $this->error(__('Invalid parameters'));
@@ -126,11 +144,33 @@ class User extends Api
         {
             $this->error(__('Mobile is incorrect'));
         }
-        $ret = $this->auth->register($username, $password, $email, $mobile, []);
+        $field = Validate::is($username, 'email') ? 'email' : (Validate::regex($username, '/^1\d{10}$/') ? 'mobile' : 'username');
+        if($field!=='username'){
+            if(empty($email) && $field=='email'){
+                $email=$username;
+            }
+            if(empty($mobile)&&$field=='mobile'){
+                $mobile=$username;
+            }
+        }
+
+        if(!$type){
+            $this->error('无法区分账号');
+        }
+
+        $ret = $this->auth->register($username, $password, $type,$email, $mobile, []);
         if ($ret)
         {
-            $data = ['userinfo' => $this->auth->getUserinfo()];
-            $this->success(__('Sign up successful'), $data,200);
+            $userinfo = $this->auth->getUserinfo();
+            if($userinfo['avatar']=='/assets/img/avatar.png') $userinfo['avatar']='';
+            $result = [
+                'username'=>$userinfo['username'],
+                'nickname'=>$userinfo['nickname'],
+                'mobile'=>$userinfo['mobile'],
+                'avatar'=>$userinfo['avatar'],
+                'token'=>$userinfo['token'],
+            ];
+            $this->success(__('Sign up successful'), $result,200);
         }
         else
         {
