@@ -70,16 +70,6 @@ class Vim extends Api
             'c.user_id' => $user_id,
         ];
         $list = $this->getStatusList($where);
-        foreach ($list as $k => $v) {
-            if (empty($v['age'])) {
-                $v['age'] = '';
-            } else {
-                $v['age'] = ceil((time() - strtotime($v['age'])) / (365 * 24 * 60 * 60));
-            }
-            $v['lon'] = $v['lon'] ?? '';
-            $v['lat'] = $v['lat'] ?? '';
-            $list[$k] = $v;
-        }
         $this->result('success', $list, 200);
     }
 
@@ -140,11 +130,11 @@ class Vim extends Api
         $user_id = $this->auth->id;
         $data = VimUserinfo::get(['user_id' => $user_id]);
         $result = [
-            'name' => $data['name'],
-            'mobile' => $data['mobile'],
-            'driver' => $data['driver'],
-            'driverAge' => $data['driver_age'],
-            'status' => $data['status']
+            'name' => $data['name'] ?? '',
+            'mobile' => $data['mobile'] ?? '',
+            'driver' => $data['driver'] ?? '',
+            'driverAge' => $data['driver_age'] ?? '',
+            'status' => $data['status'] ?? 1
         ];
         if (empty($data['birthday'])) {
             $result['age'] = '';
@@ -163,7 +153,8 @@ class Vim extends Api
      */
     public function index()
     {
-        $user_id = $this->auth->id;
+//        $user_id = $this->auth->id;
+        $user_id = 20;
         $total = VimContact::where('user_id', $user_id)->count('id');
         $list = $this->getStatusList(['c.user_id' => $user_id]);
         $normal_list = $this->getStatusList(['c.user_id' => $user_id, 'u.status' => 1]);
@@ -205,6 +196,17 @@ class Vim extends Api
             ->where($where)
             ->order('c.indexes', 'ASC')
             ->select();
+        foreach ($list as $k => $v) {
+            if (empty($v['age'])) {
+                $v['age'] = '';
+            } else {
+                $v['age'] = ceil((time() - strtotime($v['age'])) / (365 * 24 * 60 * 60));
+            }
+            $v['lon'] = $v['lon'] ?? '';
+            $v['lat'] = $v['lat'] ?? '';
+            $v['status'] = $v['status'] ?? 1;
+            $list[$k] = $v;
+        }
         return $list;
     }
 
