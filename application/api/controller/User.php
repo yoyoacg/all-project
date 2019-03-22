@@ -198,19 +198,19 @@ class User extends Api
     public function profile()
     {
         $user = $this->auth->getUser();
-        $username = $this->request->param('username',null);
+//        $username = $this->request->param('username',null);
         $nickname = $this->request->param('nickname',null);
         $bio = $this->request->param('bio',null);
         $avatar = $this->request->param('avatar',null);
-        $exists = \app\common\model\User::where(['username'=>$username,'type'=>$user->type])->where('id', '<>', $this->auth->id)->find();
-        if ($exists)
-        {
-            $this->error(__('Username already exists'));
-        }
-        if(empty($username)&&empty($nickname)&&empty($bio)&&empty($avatar)){
+//        $exists = \app\common\model\User::where(['username'=>$username,'type'=>$user->type])->where('id', '<>', $this->auth->id)->find();
+//        if ($exists)
+//        {
+//            $this->error(__('Username already exists'));
+//        }
+        if(empty($nickname)&&empty($bio)&&empty($avatar)){
             $this->error('请选择一项');
         }
-        if (!empty($username)) $user->username = $username;
+//        if (!empty($username)) $user->username = $username;
         if (!empty($nickname))$user->nickname = $nickname;
         if (!empty($bio)) $user->bio = $bio;
         if (!empty($avatar)) $user->avatar = $avatar;
