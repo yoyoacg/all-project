@@ -35,10 +35,10 @@ class Common extends Api
             $lng = $this->request->request('lng');
             $lat = $this->request->request('lat');
             $content = [
-                'citydata'    => Area::getCityFromLngLat($lng, $lat),
+                'citydata' => Area::getCityFromLngLat($lng, $lat),
                 'versiondata' => Version::check($version),
-                'uploaddata'  => Config::get('upload'),
-                'coverdata'   => Config::get("cover"),
+                'uploaddata' => Config::get('upload'),
+                'coverdata' => Config::get("cover"),
             ];
             $this->success('', $content);
         } else {
@@ -84,18 +84,18 @@ class Common extends Api
             $this->error(__('Uploaded file format is limited'));
         }
         $replaceArr = [
-            '{year}'     => date("Y"),
-            '{mon}'      => date("m"),
-            '{day}'      => date("d"),
-            '{hour}'     => date("H"),
-            '{min}'      => date("i"),
-            '{sec}'      => date("s"),
-            '{random}'   => Random::alnum(16),
+            '{year}' => date("Y"),
+            '{mon}' => date("m"),
+            '{day}' => date("d"),
+            '{hour}' => date("H"),
+            '{min}' => date("i"),
+            '{sec}' => date("s"),
+            '{random}' => Random::alnum(16),
             '{random32}' => Random::alnum(32),
             '{filename}' => $suffix ? substr($fileInfo['name'], 0, strripos($fileInfo['name'], '.')) : $fileInfo['name'],
-            '{suffix}'   => $suffix,
-            '{.suffix}'  => $suffix ? '.' . $suffix : '',
-            '{filemd5}'  => md5_file($fileInfo['tmp_name']),
+            '{suffix}' => $suffix,
+            '{.suffix}' => $suffix ? '.' . $suffix : '',
+            '{filemd5}' => md5_file($fileInfo['tmp_name']),
         ];
         $savekey = $upload['savekey'];
         $savekey = str_replace(array_keys($replaceArr), array_values($replaceArr), $savekey);
@@ -103,6 +103,8 @@ class Common extends Api
         $uploadDir = substr($savekey, 0, strripos($savekey, '/') + 1);
         $fileName = substr($savekey, strripos($savekey, '/') + 1);
         //
+        $url = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST']; //域名
+
         $splInfo = $file->validate(['size' => $size])->move(ROOT_PATH . '/public' . $uploadDir, $fileName);
         if ($splInfo) {
             $imagewidth = $imageheight = 0;
@@ -112,25 +114,25 @@ class Common extends Api
                 $imageheight = isset($imgInfo[1]) ? $imgInfo[1] : $imageheight;
             }
             $params = array(
-                'admin_id'    => 0,
-                'user_id'     => (int)$this->auth->id,
-                'filesize'    => $fileInfo['size'],
-                'imagewidth'  => $imagewidth,
+                'admin_id' => 0,
+                'user_id' => (int)$this->auth->id,
+                'filesize' => $fileInfo['size'],
+                'imagewidth' => $imagewidth,
                 'imageheight' => $imageheight,
-                'imagetype'   => $suffix,
+                'imagetype' => $suffix,
                 'imageframes' => 0,
-                'mimetype'    => $fileInfo['type'],
-                'url'         => $uploadDir . $splInfo->getSaveName(),
-                'uploadtime'  => time(),
-                'storage'     => 'local',
-                'sha1'        => $sha1,
+                'mimetype' => $fileInfo['type'],
+                'url' => $uploadDir . $splInfo->getSaveName(),
+                'uploadtime' => time(),
+                'storage' => 'local',
+                'sha1' => $sha1,
             );
             $attachment = model("attachment");
             $attachment->data(array_filter($params));
             $attachment->save();
             \think\Hook::listen("upload_after", $attachment);
             $this->success(__('Upload successful'), [
-                'url' => $uploadDir . $splInfo->getSaveName()
+                'url' => $url . $uploadDir . $splInfo->getSaveName()
             ]);
         } else {
             // 上传失败获取错误信息

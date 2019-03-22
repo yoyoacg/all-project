@@ -198,21 +198,24 @@ class User extends Api
     public function profile()
     {
         $user = $this->auth->getUser();
-        $username = $this->request->request('username');
-        $nickname = $this->request->request('nickname');
-        $bio = $this->request->request('bio');
-        $avatar = $this->request->request('avatar');
-        $exists = \app\common\model\User::where('username', $username)->where('id', '<>', $this->auth->id)->find();
+        $username = $this->request->param('username',null);
+        $nickname = $this->request->param('nickname',null);
+        $bio = $this->request->param('bio',null);
+        $avatar = $this->request->param('avatar',null);
+        $exists = \app\common\model\User::where(['username'=>$username,'type'=>$user->type])->where('id', '<>', $this->auth->id)->find();
         if ($exists)
         {
             $this->error(__('Username already exists'));
         }
-        $user->username = $username;
-        $user->nickname = $nickname;
-        $user->bio = $bio;
-        $user->avatar = $avatar;
+        if(empty($username)&&empty($nickname)&&empty($bio)&&empty($avatar)){
+            $this->error('请选择一项');
+        }
+        if (!empty($username)) $user->username = $username;
+        if (!empty($nickname))$user->nickname = $nickname;
+        if (!empty($bio)) $user->bio = $bio;
+        if (!empty($avatar)) $user->avatar = $avatar;
         $user->save();
-        $this->success();
+        $this->success('success',null,200);
     }
 
     /**
