@@ -27,7 +27,6 @@ class Vim extends Api
     {
         $data = $this->request->post();
         $user_id = $this->auth->id;
-//        $user_id = 20;
         if (empty($data['name'])) $this->error('请输入姓名');
         if (empty($data['mobile']) || !\think\Validate::regex($data['mobile'], '/^1\d{10}$/')) $this->error('请输入手机号码');
         $add_data = [
@@ -153,8 +152,7 @@ class Vim extends Api
      */
     public function index()
     {
-//        $user_id = $this->auth->id;
-        $user_id = 20;
+        $user_id = $this->auth->id;
         $total = VimContact::where('user_id', $user_id)->count('id');
         $list = $this->getStatusList(['c.user_id' => $user_id]);
         $normal_list = $this->getStatusList(['c.user_id' => $user_id, 'u.status' => 1]);
@@ -191,8 +189,8 @@ class Vim extends Api
      */
     protected function getStatusList($where = [])
     {
-        $list = Db::view('Vim_contact c', 'id,name,birthday age,mobile,driver,driver_age driverAge,license,indexes')
-            ->view('Vim_userinfo u', 'lon,lat,status', 'c.mobile=u.mobile', 'LEFT')
+        $list = Db::view('vim_contact c', 'id,name,birthday age,mobile,driver,driver_age driverAge,license,indexes')
+            ->view('vim_userinfo u', 'lon,lat,status', 'c.mobile=u.mobile', 'LEFT')
             ->where($where)
             ->order('c.indexes', 'ASC')
             ->select();
