@@ -19,66 +19,68 @@ use app\common\model\Zuowen;
  */
 class Other extends Api
 {
-    protected $noNeedLogin='*';
+    protected $noNeedLogin = '*';
 
-    protected $noNeedRight='*';
+    protected $noNeedRight = '*';
 
     /**
      * 获取作文列表
      * @throws \think\Exception
      */
-    public function get_z_list(){
+    public function get_z_list()
+    {
         $cid = $this->request->post('cid');
         $size = $this->request->post('size');
         $keyword = $this->request->post('keyword');
         $page = $this->request->param('page', 1);
         $pageSize = $this->request->param('page_size', 10);
-        if(intval($page)<1) $page=1;
-        $offset = ($page-1)*$pageSize;
+        if (intval($page) < 1) $page = 1;
+        $offset = ($page - 1) * $pageSize;
         $where = [];
-        if($cid) $where['cid']=$cid;
-        if(intval($size)){
+        if ($cid) $where['cid'] = $cid;
+        if (intval($size)) {
             $size = intval($size);
-            $where['cid']=['between',[$size,$size+100]];
+            $where['cid'] = ['between', [$size, $size + 100]];
         }
-        if($keyword){
-            $where['name']=['LIKE','%'.$keyword.'%'];
+        if ($keyword) {
+            $where['name'] = ['LIKE', '%' . $keyword . '%'];
         }
         $total = Zuowen::where($where)->count('id');
         $list = Zuowen::where($where)
-            ->order('view','desc')
-            ->limit($offset,$pageSize)
+            ->order('view', 'desc')
+            ->limit($offset, $pageSize)
             ->column('id,name,size,view,cate,content');
-        foreach ($list as $k=>$v){
-            $list[$k]['desc'] = mb_substr(strip_tags($v['content']),0,100).'....';
+        foreach ($list as $k => $v) {
+            $list[$k]['desc'] = mb_substr(strip_tags($v['content']), 0, 100) . '....';
             unset($list[$k]['content']);
         }
-        $result =[
-            'total'=>$total,
-            'currentPage'=>$page,
-            'list'=>array_values($list)
+        $result = [
+            'total' => $total,
+            'currentPage' => $page,
+            'list' => array_values($list)
         ];
-        return $this->result('success',$result,200);
+        $this->result('success', $result, 200);
     }
 
     /**
      * 获取推荐
      */
-    public function z_recommend(){
+    public function z_recommend()
+    {
         $zuowen = new Zuowen();
-        $list = $zuowen->order('view','desc')
-            ->limit(0,10)
+        $list = $zuowen->order('view', 'desc')
+            ->limit(0, 10)
             ->column('id,name,size,view,cate,content');
-        foreach ($list as $k=>$v){
-            $list[$k]['desc'] = mb_substr(strip_tags($v['content']),0,100).'....';
+        foreach ($list as $k => $v) {
+            $list[$k]['desc'] = mb_substr(strip_tags($v['content']), 0, 100) . '....';
             unset($list[$k]['content']);
         }
-        $result =[
-            'total'=>10,
-            'currentPage'=>1,
-            'list'=>array_values($list)
+        $result = [
+            'total' => 10,
+            'currentPage' => 1,
+            'list' => array_values($list)
         ];
-        return $this->result('success',$result,200);
+        $this->result('success', $result, 200);
     }
 
     /**
@@ -86,18 +88,28 @@ class Other extends Api
      * @throws \think\Exception
      * @throws \think\exception\DbException
      */
-    public function z_detail(){
+    public function z_detail()
+    {
         $id = $this->request->post('id');
         $data = Zuowen::get($id);
-        Zuowen::where('id',$id)->setInc('view',1);
+        Zuowen::where('id', $id)->setInc('view', 1);
         $result = [
-            'name'=>$data['name'],
-            'size'=>$data['size'],
-            'content'=>$data['content'],
-            'view'=>$data['view'],
-            'cate'=>$data['cate'],
+            'name' => $data['name'],
+            'size' => $data['size'],
+            'content' => $data['content'],
+            'view' => $data['view'],
+            'cate' => $data['cate'],
         ];
-        return $this->result('success',$result,200);
+        $this->result('success', $result, 200);
+    }
+
+    /**
+     * 获取banner
+     */
+    public function get_z_banner()
+    {
+        $list = $this->getBannerList(1);
+        $this->result('success', $list, 200);
     }
 
 }

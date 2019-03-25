@@ -27,7 +27,7 @@ class Token extends Api
     {
         $token = $this->auth->getToken();
         $tokenInfo = \app\common\library\Token::get($token);
-        $this->success('', ['token' => $tokenInfo['token'], 'expires_in' => $tokenInfo['expires_in']]);
+        $this->success('', ['token' => $tokenInfo['token'], 'expires_in' => $tokenInfo['expires_in']],200);
     }
 
     /**
@@ -43,7 +43,7 @@ class Token extends Api
         $token = Random::uuid();
         \app\common\library\Token::set($token, $this->auth->id, 2592000);
         $tokenInfo = \app\common\library\Token::get($token);
-        $this->success('', ['token' => $tokenInfo['token'], 'expires_in' => $tokenInfo['expires_in']]);
+        $this->success('', ['token' => $tokenInfo['token'], 'expires_in' => $tokenInfo['expires_in']],200);
     }
 
 }

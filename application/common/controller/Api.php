@@ -2,6 +2,7 @@
 
 namespace app\common\controller;
 
+use app\admin\model\Banner;
 use app\common\library\Auth;
 use think\Config;
 use think\exception\HttpResponseException;
@@ -416,6 +417,24 @@ class Api
             return 'Z';
 
         return null;
+    }
+
+    /**
+     * 获取banner
+     * @param int $cid
+     * @return array
+     */
+    protected function getBannerList($cid=0){
+        $where=[
+            'category_id'=>$cid,
+            'status'=>'normal'
+        ];
+        $list = Banner::where($where)->order('weigh','DESC')
+            ->column('id,name,img,link');
+        foreach ($list as $k=>$v){
+            $list[$k]['img']='http://'.$_SERVER['HTTP_HOST'].$v['img'];
+        }
+        return array_values($list);
     }
 
 }

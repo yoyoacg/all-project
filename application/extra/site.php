@@ -16,6 +16,7 @@ return array (
   'categorytype' => 
   array (
     'default' => 'Default',
+    'banner' => 'Banner',
   ),
   'configgroup' => 
   array (
