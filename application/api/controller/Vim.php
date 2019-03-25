@@ -135,7 +135,7 @@ class Vim extends Api
             'driverAge' => $data['driver_age'] ?? '',
             'status' => $data['status'] ?? 1
         ];
-        if (!isset($data['birthday'])||empty($data['birthday'])) {
+        if ($data == null || empty($data['birthday'])) {
             $result['age'] = '';
         } else {
             $result['age'] = ceil((time() - strtotime($data['age'])) / (365 * 24 * 60 * 60));
