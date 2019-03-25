@@ -40,7 +40,7 @@ class Other extends Api
         if ($cid) $where['cid'] = $cid;
         if (intval($size)) {
             $size = intval($size);
-            $where['cid'] = ['between', [$size, $size + 100]];
+            $where['size'] = ['between', [$size, $size + 100]];;
         }
         if ($keyword) {
             $where['name'] = ['LIKE', '%' . $keyword . '%'];
