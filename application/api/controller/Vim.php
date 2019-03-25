@@ -138,7 +138,7 @@ class Vim extends Api
         if (empty($data['birthday'])) {
             $result['age'] = '';
         } else {
-            $result['age'] = ceil((time() - strtotime($data['birthday'])) / (365 * 24 * 60 * 60));
+            $result['age'] = (string)ceil((time() - strtotime($data['birthday'])) / (365 * 24 * 60 * 60));
         }
         $this->result('success', $result, 200);
     }
