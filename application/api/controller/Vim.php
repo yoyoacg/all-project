@@ -16,7 +16,7 @@ use think\Db;
 
 class Vim extends Api
 {
-    protected $noNeedLogin = '*';
+    protected $noNeedLogin = [];
 
     protected $noNeedRight = '*';
 
