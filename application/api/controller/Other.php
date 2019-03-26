@@ -169,5 +169,33 @@ class Other extends Api
         $this->result('success', $result, 200);
     }
 
+    /**
+     * 获取充电桩
+     */
+    public function charge_list()
+    {
+        $lon = $this->request->post('lon', '116.404');
+        $lat = $this->request->post('lat', '39.915');
+        $url = 'http://api.map.baidu.com/place/v2/search?';
+        $ak = 'OS6Qtuz8irbVWgxwxVjof6RumkDg4kI2';
+        $tag = '交通设施';
+        $params = [
+            'query' => '充电桩',
+            'radius' => 2000,
+            'output' => 'json',
+            'ak' => $ak,
+            'tag' => $tag,
+            'location' => trim($lat) . ',' . trim($lon)
+        ];
+        $get_params = http_build_query($params);
+        $result = $this->http_request($url . $get_params);
+        $result = json_decode($result, true);
+        if ($result['status'] == 0) {
+            $this->result('success', $result['results'], 200);
+        } else {
+            $this->error('暂无数据');
+        }
+    }
+
 
 }

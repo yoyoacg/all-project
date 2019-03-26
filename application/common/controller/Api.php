@@ -437,4 +437,55 @@ class Api
         return array_values($list);
     }
 
+    /**
+     * 下划线转驼峰
+     * @param $str
+     * @param bool $ucfirst
+     * @return mixed|string
+     */
+    protected function convertUnderline($str,$ucfirst=true)
+    {
+        $str = ucwords(str_replace('_', ' ', $str));
+        $str = str_replace(' ','',lcfirst($str));
+        return $ucfirst ? ucfirst($str) : $str;
+    }
+
+    /**
+     * 数组下标转换
+     * @param array $data
+     * @return array
+     */
+    protected function cUL($data=[]){
+        $list=[];
+        foreach ($data as $k=>$v){
+            $list[$this->convertUnderline($k)] = $v;
+        }
+        return $list;
+    }
+
+    /**
+     * curl请求
+     * @param string $url
+     * @param null $data
+     * @param array $header
+     * @return bool|string
+     */
+    protected function http_request($url = '', $data = null, $header = [])
+    {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($curl, CURLOPT_HEADER, $header);
+        if (!empty($data)) {
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+        }
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        $output = curl_exec($curl);
+        curl_close($curl);
+        return $output;
+    }
+
+
 }
