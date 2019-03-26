@@ -10,7 +10,11 @@ namespace app\api\controller;
 
 
 use app\common\controller\Api;
+use app\common\model\cnaps\Bank;
+use app\common\model\cnaps\Canps;
+use app\common\model\cnaps\City;
 use app\common\model\Zuowen;
+use fast\Tree;
 
 /**
  * 其余接口
@@ -111,5 +115,59 @@ class Other extends Api
         $list = $this->getBannerList(1);
         $this->result('success', $list, 200);
     }
+
+    /**
+     * 获取银行
+     * @throws \think\exception\DbException
+     */
+    public function canaps_bank()
+    {
+        $list = Bank::all();
+        $this->result('success', $list, 200);
+    }
+
+    /**
+     * 根据银行获取城市
+     */
+    public function canps_city()
+    {
+        $cid = $this->request->post('bank_id');
+        if (empty($cid)) $this->error('缺少参数');
+        $list = City::where('cid', $cid)->column('id,pid,name,level');
+        $tree = new Tree();
+        $tree->init($list, 'pid');
+        $relist = $tree->getTreeArray(0);
+        $this->result('success', $relist, 200);
+    }
+
+    /**
+     * 获取编码
+     * @throws \think\Exception
+     */
+    public function canps()
+    {
+        $bank_id = $this->request->post('bank_id');
+        $city_id = $this->request->post('city');
+        $keyword = $this->request->post('keyword');
+        $page = $this->request->param('page', 1);
+        $pageSize = $this->request->param('page_size', 10);
+        if (intval($page) < 1) $page = 1;
+        $offset = ($page - 1) * intval($pageSize);
+        if (!$bank_id) $this->error('缺少参数');
+        $where = [
+            'bank_id' => $bank_id
+        ];
+        if ($city_id) $where['cid'] = $city_id;
+        if ($keyword) $where['name'] = ['LIKE', '%' . $keyword . '%'];
+        $total = Canps::where($where)->count('id');
+        $list = Canps::where($where)->limit($offset, intval($pageSize))->column('id,name,cnaps,address,lon,lat');
+        $result = [
+            'total' => $total,
+            'currentPage' => $page,
+            'list' => array_values($list)
+        ];
+        $this->result('success', $result, 200);
+    }
+
 
 }
