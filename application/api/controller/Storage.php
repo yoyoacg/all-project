@@ -78,16 +78,16 @@ class Storage extends Api
             ->order($order, $sort)
             ->field('id,tag_id,name stoName,desc,img stoImg,create_time')
             ->select();
-        foreach ($list as $k=>$v){
-            $v['tagName'] =$v['name'];
-            $v['tagImg'] =$v['img'];
+        foreach ($list as $k => $v) {
+            $v['tagName'] = $v['name'];
+            $v['tagImg'] = $v['img'];
             $v['name'] = $v['stoName'];
             $v['img'] = $v['stoImg'];
-            if(!empty($v['tagImg'])&&!strpos($v['tagImg'],'http://')){
-                $v['tagImg'] = 'http://'.$_SERVER['HTTP_HOST'].$v['tagImg'];
+            if (!empty($v['tagImg']) && strpos($v['tagImg'], 'http:') === false) {
+                $v['tagImg'] = 'http://' . $_SERVER['HTTP_HOST'] . $v['tagImg'];
             }
-            if(!empty($v['img'])&&!strpos($v['img'],'http://')){
-                $v['img'] = 'http://'.$_SERVER['HTTP_HOST'].$v['img'];
+            if (!empty($v['img']) && strpos($v['img'], 'http:') === false) {
+                $v['img'] = 'http://' . $_SERVER['HTTP_HOST'] . $v['img'];
             }
             unset($v['tag_id']);
             unset($v['stoName']);
