@@ -83,6 +83,12 @@ class Storage extends Api
             $v['tagImg'] =$v['img'];
             $v['name'] = $v['stoName'];
             $v['img'] = $v['stoImg'];
+            if(!empty($v['tagImg'])&&!strpos($v['tagImg'],'http://')){
+                $v['tagImg'] = 'http://'.$_SERVER['HTTP_HOST'].$v['tagImg'];
+            }
+            if(!empty($v['img'])&&!strpos($v['img'],'http://')){
+                $v['img'] = 'http://'.$_SERVER['HTTP_HOST'].$v['img'];
+            }
             unset($v['tag_id']);
             unset($v['stoName']);
             unset($v['stoImg']);
