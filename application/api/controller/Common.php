@@ -14,7 +14,7 @@ use think\Config;
 class Common extends Api
 {
 
-    protected $noNeedLogin = ['init'];
+    protected $noNeedLogin = ['init','upload'];
     protected $noNeedRight = '*';
 
     public function _initialize()
