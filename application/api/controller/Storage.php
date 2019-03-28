@@ -24,7 +24,7 @@ class Storage extends Api
     public function get_tag()
     {
         $band_id = $this->request->post('band_id');
-        if(empty($band_id)) $this->error();
+        if (empty($band_id)) $this->error();
         $list = Tag::whereIn('type', ['normal', $band_id])
             ->column('id,name,img,num');
         foreach ($list as $k => $v) {
@@ -43,7 +43,7 @@ class Storage extends Api
     {
         $band_id = $this->request->post('band_id');
         $name = $this->request->post('name');
-        if(empty($band_id)||empty($name)) $this->error();
+        if (empty($band_id) || empty($name)) $this->error();
         $data = [
             'type' => $band_id,
             'name' => $name
@@ -73,10 +73,21 @@ class Storage extends Api
         } else {
             $this->error('fail');
         }
-        $list = \app\common\model\storage\Storage::where($where)
+        $list = \app\common\model\storage\Storage::with('tag')
+            ->where($where)
             ->order($order, $sort)
-            ->column('id,name,desc,img,create_time');
-        $this->result('success', array_values($list), 200);
+            ->field('id,tag_id,name stoName,desc,img stoImg,create_time')
+            ->select();
+        foreach ($list as $k=>$v){
+            $v['tagName'] =$v['name'];
+            $v['tagImg'] =$v['img'];
+            $v['name'] = $v['stoName'];
+            $v['img'] = $v['stoImg'];
+            unset($v['tag_id']);
+            unset($v['stoName']);
+            unset($v['stoImg']);
+        }
+        $this->result('success', $list, 200);
     }
 
     public function add_storage()

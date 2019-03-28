@@ -14,8 +14,7 @@ class Storage extends Model
     protected $table='storage';
 
     public function tag(){
-        return $this->belongsTo('Tag','tag_id','id','','LEFT')
-            ->bind('name tagName,img tagImg');
+        return $this->belongsTo('Tag','tag_id','id','','LEFT')->bind('name,img');
     }
 
 }
