@@ -127,7 +127,7 @@ class User extends Api
      */
     public function register()
     {
-        $username = $this->request->post('username');
+        $username = $this->request->post('username')??$this->request->post('account');
         $password = $this->request->post('password');
         $email = $this->request->post('email','');
         $mobile = $this->request->post('mobile','');

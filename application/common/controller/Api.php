@@ -451,14 +451,15 @@ class Api
     }
 
     /**
-     * 数组下标转换
+     * 数组下标装换
      * @param array $data
+     * @param bool $ucfirst
      * @return array
      */
-    protected function cUL($data=[]){
+    protected function cUL($data=[],$ucfirst=true){
         $list=[];
         foreach ($data as $k=>$v){
-            $list[$this->convertUnderline($k)] = $v;
+            $list[$this->convertUnderline($k,$ucfirst)] = $v;
         }
         return $list;
     }

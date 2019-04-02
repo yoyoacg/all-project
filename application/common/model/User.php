@@ -37,10 +37,10 @@ class User Extends Model
      * @param   array     $data
      * @return string
      */
-    public function getAvatarAttr($value, $data)
-    {
-        return $value ? $value : '/assets/img/avatar.png';
-    }
+//    public function getAvatarAttr($value, $data)
+//    {
+//        return $value ? $value : '/assets/img/avatar.png';
+//    }
 
     /**
      * 获取会员的组别
