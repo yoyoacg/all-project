@@ -329,7 +329,7 @@ class Sport extends Api
         $user_id = $this->auth->id;
         $content = $this->request->post('content', '');
         $img = $this->request->post('img');
-        if (empty($content)) $this->error('缺少参数');
+        if (empty($content)&&empty($img)) $this->error('缺少参数');
         $data = [
             'user_id' => $user_id,
             'content' => mb_substr($content, 0, 250),
@@ -375,6 +375,8 @@ class Sport extends Api
             ->select();
         $list = collection($list)->toArray();
         foreach ($list as $k => $v) {
+            $v['imgs']=explode(',',$v['img']);
+            unset($v['img']);
             $list[$k] = $this->cUL($v, false);
         }
         $list = $this->is_recommend($list, 'mood');
@@ -392,15 +394,26 @@ class Sport extends Api
     public function my_photo()
     {
         $user_id = $this->auth->id;
+        $page = $this->request->param('page', 1);
+        $pageSize = $this->request->param('page_size', 10);
+        if (intval($page) < 1) $page = 1;
+        $offset = ($page - 1) * intval($pageSize);
+        $total = ViewMood::where('user_id', $user_id)->count('id');
         $list = ViewMood::where('user_id', $user_id)
             ->order('create_time', 'DESC')
+            ->limit($offset,$pageSize)
             ->column('img');
         $res = [];
         foreach ($list as $k => $v) {
             $arr = explode(',', $v);
             $res = array_merge($res, $arr);
         }
-        $this->result('success', $res, 200);
+        $result = [
+            'total'=>$total,
+            'currentPage'=>$page,
+            'list'=>$res
+        ];
+        $this->result('success', $result, 200);
     }
 
     /**
@@ -480,10 +493,13 @@ class Sport extends Api
         $user_id = $this->auth->id;
         $comment_count = ViewComment::where('user_id',$user_id)->count('id');
         $love_count= ViewLove::where('user_id',$user_id)->count('id');
-//        $user = \app\common\model\User::get($user_id);
+        $user = \app\common\model\User::get($user_id);
         $result = [
             'comment'=>$comment_count,
             'love'=>$love_count,
+            'bio'=>$user['bio'],
+            'nickname'=>$user['nickname'],
+            'avatar'=>$user['avatar']
         ];
         $this->result('success', $result, 200);
     }

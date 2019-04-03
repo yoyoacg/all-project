@@ -14,7 +14,7 @@ use think\Config;
 class Common extends Api
 {
 
-    protected $noNeedLogin = ['init','upload'];
+    protected $noNeedLogin = ['init','upload','uploads'];
     protected $noNeedRight = '*';
 
     public function _initialize()
@@ -57,10 +57,16 @@ class Common extends Api
         if (empty($file)) {
             $this->error(__('No file upload or server upload limit exceeded'));
         }
-
+        $url = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST']; //域名
         //判断是否已经存在附件
         $sha1 = $file->hash();
-
+        $attachment = model("attachment");
+        $is_cache = $attachment->where('sha1',$sha1)->value('url');
+        if($is_cache){
+            $this->success(__('Upload successful'), [
+                'url' => $url .$is_cache
+            ]);
+        }
         $upload = Config::get('upload');
 
         preg_match('/(\d+)(\w+)/', $upload['maxsize'], $matches);
@@ -103,7 +109,7 @@ class Common extends Api
         $uploadDir = substr($savekey, 0, strripos($savekey, '/') + 1);
         $fileName = substr($savekey, strripos($savekey, '/') + 1);
         //
-        $url = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST']; //域名
+
 
         $splInfo = $file->validate(['size' => $size])->move(ROOT_PATH . '/public' . $uploadDir, $fileName);
         if ($splInfo) {
@@ -127,16 +133,118 @@ class Common extends Api
                 'storage' => 'local',
                 'sha1' => $sha1,
             );
-            $attachment = model("attachment");
+
             $attachment->data(array_filter($params));
             $attachment->save();
             \think\Hook::listen("upload_after", $attachment);
             $this->success(__('Upload successful'), [
                 'url' => $url . $uploadDir . $splInfo->getSaveName()
-            ]);
+            ],200);
         } else {
             // 上传失败获取错误信息
             $this->error($file->getError());
+        }
+    }
+
+    /**
+     * 多图上传
+     */
+    public function uploads(){
+        $files = $this->request->file('file');
+        if(is_array($files)){
+            $result = [];
+            $url = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST']; //域名
+            $upload = Config::get('upload');
+            preg_match('/(\d+)(\w+)/', $upload['maxsize'], $matches);
+            $type = strtolower($matches[2]);
+            $typeDict = ['b' => 0, 'k' => 1, 'kb' => 1, 'm' => 2, 'mb' => 2, 'gb' => 3, 'g' => 3];
+            $size = (int)$upload['maxsize'] * pow(1024, isset($typeDict[$type]) ? $typeDict[$type] : 0);
+            $mimetypeArr = explode(',', strtolower($upload['mimetype']));
+
+            foreach ($files as $k=>$file){
+                if (empty($file)) {
+                    $this->error(__('No file upload or server upload limit exceeded'));
+                }
+
+                //判断是否已经存在附件
+                $sha1 = $file->hash();
+                $attachment = model("attachment");
+                $is_cache = $attachment->where('sha1',$sha1)->value('url');
+                if($is_cache){
+                    $result[]=$url.$is_cache;
+                    continue;
+                }
+                $fileInfo = $file->getInfo();
+                $suffix = strtolower(pathinfo($fileInfo['name'], PATHINFO_EXTENSION));
+                $suffix = $suffix ? $suffix : 'file';
+
+
+                $typeArr = explode('/', $fileInfo['type']);
+
+                //验证文件后缀
+                if ($upload['mimetype'] !== '*' &&
+                    (
+                        !in_array($suffix, $mimetypeArr)
+                        || (stripos($typeArr[0] . '/', $upload['mimetype']) !== false && (!in_array($fileInfo['type'], $mimetypeArr) && !in_array($typeArr[0] . '/*', $mimetypeArr)))
+                    )
+                ) {
+                    $this->error(__('Uploaded file format is limited'));
+                }
+                $replaceArr = [
+                    '{year}' => date("Y"),
+                    '{mon}' => date("m"),
+                    '{day}' => date("d"),
+                    '{hour}' => date("H"),
+                    '{min}' => date("i"),
+                    '{sec}' => date("s"),
+                    '{random}' => Random::alnum(16),
+                    '{random32}' => Random::alnum(32),
+                    '{filename}' => $suffix ? substr($fileInfo['name'], 0, strripos($fileInfo['name'], '.')) : $fileInfo['name'],
+                    '{suffix}' => $suffix,
+                    '{.suffix}' => $suffix ? '.' . $suffix : '',
+                    '{filemd5}' => md5_file($fileInfo['tmp_name']),
+                ];
+                $savekey = $upload['savekey'];
+                $savekey = str_replace(array_keys($replaceArr), array_values($replaceArr), $savekey);
+
+                $uploadDir = substr($savekey, 0, strripos($savekey, '/') + 1);
+                $fileName = substr($savekey, strripos($savekey, '/') + 1);
+
+                $splInfo = $file->validate(['size' => $size])->move(ROOT_PATH . '/public' . $uploadDir, $fileName);
+                if ($splInfo) {
+                    $imagewidth = $imageheight = 0;
+                    if (in_array($suffix, ['gif', 'jpg', 'jpeg', 'bmp', 'png', 'swf'])) {
+                        $imgInfo = getimagesize($splInfo->getPathname());
+                        $imagewidth = isset($imgInfo[0]) ? $imgInfo[0] : $imagewidth;
+                        $imageheight = isset($imgInfo[1]) ? $imgInfo[1] : $imageheight;
+                    }
+
+                    $params = array(
+                        'admin_id' => 0,
+                        'user_id' => (int)$this->auth->id,
+                        'filesize' => $fileInfo['size'],
+                        'imagewidth' => $imagewidth,
+                        'imageheight' => $imageheight,
+                        'imagetype' => $suffix,
+                        'imageframes' => 0,
+                        'mimetype' => $fileInfo['type'],
+                        'url' => $uploadDir . $splInfo->getSaveName(),
+                        'uploadtime' => time(),
+                        'storage' => 'local',
+                        'sha1' => $sha1,
+                    );
+                    $attachment->data(array_filter($params));
+                    $attachment->save();
+                    \think\Hook::listen("upload_after", $attachment);
+                    $result[]=$url . $uploadDir . $splInfo->getSaveName();
+                } else {
+                    // 上传失败获取错误信息
+                    $this->error($file->getError());
+                }
+            }
+            $this->success(__('Upload successful'),$result,200);
+        }else{
+            $this->error(__('No file upload or server upload limit exceeded'));
         }
     }
 
