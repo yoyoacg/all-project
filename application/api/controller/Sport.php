@@ -11,6 +11,7 @@ namespace app\api\controller;
 
 use app\common\controller\Api;
 use app\common\model\Spot as SpotModel;
+use app\common\model\ViewBrowse;
 use app\common\model\ViewComment;
 use app\common\model\ViewLove;
 use app\common\model\ViewMood;
@@ -186,6 +187,14 @@ class Sport extends Api
             }
             SpotModel::where('id', $data['id'])->setInc('views', 1);
             $res = $this->is_recommend($data['id'], 'view');
+            if($this->auth->id){
+                $browse=[
+                    'user_id'=>$this->auth->id,
+                    'spot_id'=>$data['id'],
+                    'create_time'=>date('Y-m-d H:i:s')
+                ];
+                ViewBrowse::create($browse);
+            }
             $this->result('success', array_merge($result, $res), 200);
         } else {
             $this->error('参数错误');
@@ -489,14 +498,21 @@ class Sport extends Api
         $this->result('success', $result, 200);
     }
 
+    /**
+     * 个人信息
+     * @throws \think\Exception
+     * @throws \think\exception\DbException
+     */
     public function user_info(){
         $user_id = $this->auth->id;
         $comment_count = ViewComment::where('user_id',$user_id)->count('id');
         $love_count= ViewLove::where('user_id',$user_id)->count('id');
+        $browse = ViewBrowse::where('user_id',$user_id)->count('id');
         $user = \app\common\model\User::get($user_id);
         $result = [
             'comment'=>$comment_count,
             'love'=>$love_count,
+            'browse'=>$browse,
             'bio'=>$user['bio'],
             'nickname'=>$user['nickname'],
             'avatar'=>$user['avatar']
@@ -504,6 +520,10 @@ class Sport extends Api
         $this->result('success', $result, 200);
     }
 
+    /**
+     * 获取喜爱
+     * @throws \think\Exception
+     */
     public function get_love(){
         $user_id = $this->auth->id;
         $page = $this->request->param('page', 1);
@@ -529,6 +549,40 @@ class Sport extends Api
         }
         $result = [
             'total' => $count,
+            'currentPage' => $page,
+            'list' => array_values($list)
+        ];
+        $this->result('success', $result, 200);
+    }
+
+    /**
+     * 浏览记录
+     * @throws \think\Exception
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     */
+    public function get_browse(){
+        $user_id = $this->auth->id;
+        $page = $this->request->param('page', 1);
+        $pageSize = $this->request->param('page_size', 10);
+        if (intval($page) < 1) $page = 1;
+        $offset = ($page - 1) * intval($pageSize);
+        $where=[
+            'user_id'=>$user_id
+        ];
+        $total = ViewBrowse::where($where)->count('id');
+        $list = ViewBrowse::with(['spot'])->where($where)
+            ->order('create_time','DESC')
+            ->limit($offset,$pageSize)
+            ->select();
+        $list = collection($list)->toArray();
+        foreach ($list as $k=>$v){
+            $v['content'] = mb_substr(strip_tags($v['content']), 1, 50);
+            $list[$k]=$this->cUL($v,false);
+        }
+        $result = [
+            'total' => $total,
             'currentPage' => $page,
             'list' => array_values($list)
         ];

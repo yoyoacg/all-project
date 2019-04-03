@@ -395,4 +395,21 @@ class User extends Api
         }
     }
 
+    /**
+     * 修改密码
+     */
+    public function revisepwd(){
+        $new = $this->request->post("new");
+        $old = $this->request->post("old");
+        $ret = $this->auth->changepwd($new, $old);
+        if ($ret)
+        {
+            $this->success(__('Reset password successful'),null,200);
+        }
+        else
+        {
+            $this->error($this->auth->getError());
+        }
+    }
+
 }
