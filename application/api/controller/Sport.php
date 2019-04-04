@@ -24,10 +24,10 @@ use app\common\model\ViewMood;
  */
 class Sport extends Api
 {
-    protected $noNeedLogin = ['get_banner','get_list','detail',
-        'recommend','get_comment','get_recomment','get_mood','get_nearby'];
+    protected $noNeedLogin = ['get_banner', 'get_list', 'detail',
+        'recommend', 'get_comment', 'get_recomment', 'get_mood', 'get_nearby'];
 
-    protected $noNeedRight='*';
+    protected $noNeedRight = '*';
 
     /**
      * 检测收藏
@@ -70,7 +70,7 @@ class Sport extends Api
                 }
                 return $data;
             }
-            if (is_string($data)) {
+            if (is_string($data) || is_numeric($data)) {
                 return [
                     'isLove' => 0,
                 ];
@@ -98,8 +98,8 @@ class Sport extends Api
         $page = $this->request->param('page', 1);
         $is_hot = $this->request->post('hot', 0);
         $pageSize = $this->request->param('page_size', 10);
-        $lat = $this->request->post('lat','');
-        $lon = $this->request->post('lon','');
+        $lat = $this->request->post('lat', '');
+        $lon = $this->request->post('lon', '');
         if (intval($page) < 1) $page = 1;
         $offset = ($page - 1) * intval($pageSize);
         $where = [
@@ -118,21 +118,21 @@ class Sport extends Api
             ->order($order, 'desc')
             ->limit($offset, $pageSize)
             ->column('id,name,cover,imgs,content,tel,address,lon,lat,comment,price,views,love');
-        foreach ($list as $k=>$v){
+        foreach ($list as $k => $v) {
             $v['content'] = mb_substr(strip_tags($v['content']), 1, 50);
             $v['imgs'] = explode(',', $v['imgs']);
-            if(!empty($lon)&&!empty($lat)){
-                $s = ceil($this->getDistance($lat,$lon,$v['lat'],$v['lon']));
-                if($s<=1000){
-                    $s = $s.'m';
-                }else{
-                    $s = number_format($s/1000,1).'km';
+            if (!empty($lon) && !empty($lat)) {
+                $s = ceil($this->getDistance($lat, $lon, $v['lat'], $v['lon']));
+                if ($s <= 1000) {
+                    $s = $s . 'm';
+                } else {
+                    $s = number_format($s / 1000, 1) . 'km';
                 }
-                $v['distance'] =$s;
-            }else{
+                $v['distance'] = $s;
+            } else {
                 $v['distance'] = '';
             }
-            $list[$k]= $v;
+            $list[$k] = $v;
         }
         $list = $this->is_recommend($list, 'view');
         $result = [
@@ -151,8 +151,8 @@ class Sport extends Api
     public function detail()
     {
         $id = $this->request->post('id');
-        $lat = $this->request->post('lat','');
-        $lon = $this->request->post('lon','');
+        $lat = $this->request->post('lat', '');
+        $lon = $this->request->post('lon', '');
         if (empty($id)) $this->error('缺少参数');
         $data = SpotModel::get(intval($id));
         if ($data) {
@@ -174,24 +174,24 @@ class Sport extends Api
                 'open' => strip_tags($data['open']),
                 'ticket' => strip_tags($data['ticket']),
             ];
-            if(!empty($lon)&&!empty($lat)){
-                $s = ceil($this->getDistance($lat,$lon,$data['lat'],$data['lon']));
-                if($s<=1000){
-                    $s = $s.'m';
-                }else{
-                    $s = number_format($s/1000,1).'km';
+            if (!empty($lon) && !empty($lat)) {
+                $s = ceil($this->getDistance($lat, $lon, $data['lat'], $data['lon']));
+                if ($s <= 1000) {
+                    $s = $s . 'm';
+                } else {
+                    $s = number_format($s / 1000, 1) . 'km';
                 }
-                $result['distance'] =$s;
-            }else{
+                $result['distance'] = $s;
+            } else {
                 $result['distance'] = '';
             }
             SpotModel::where('id', $data['id'])->setInc('views', 1);
             $res = $this->is_recommend($data['id'], 'view');
-            if($this->auth->id){
-                $browse=[
-                    'user_id'=>$this->auth->id,
-                    'spot_id'=>$data['id'],
-                    'create_time'=>date('Y-m-d H:i:s')
+            if ($this->auth->id) {
+                $browse = [
+                    'user_id' => $this->auth->id,
+                    'spot_id' => $data['id'],
+                    'create_time' => date('Y-m-d H:i:s')
                 ];
                 ViewBrowse::create($browse);
             }
@@ -338,7 +338,7 @@ class Sport extends Api
         $user_id = $this->auth->id;
         $content = $this->request->post('content', '');
         $img = $this->request->post('img');
-        if (empty($content)&&empty($img)) $this->error('缺少参数');
+        if (empty($content) && empty($img)) $this->error('缺少参数');
         $data = [
             'user_id' => $user_id,
             'content' => mb_substr($content, 0, 250),
@@ -384,7 +384,7 @@ class Sport extends Api
             ->select();
         $list = collection($list)->toArray();
         foreach ($list as $k => $v) {
-            $v['imgs']=explode(',',$v['img']);
+            $v['imgs'] = explode(',', $v['img']);
             unset($v['img']);
             $list[$k] = $this->cUL($v, false);
         }
@@ -410,7 +410,7 @@ class Sport extends Api
         $total = ViewMood::where('user_id', $user_id)->count('id');
         $list = ViewMood::where('user_id', $user_id)
             ->order('create_time', 'DESC')
-            ->limit($offset,$pageSize)
+            ->limit($offset, $pageSize)
             ->column('img');
         $res = [];
         foreach ($list as $k => $v) {
@@ -418,9 +418,9 @@ class Sport extends Api
             $res = array_merge($res, $arr);
         }
         $result = [
-            'total'=>$total,
-            'currentPage'=>$page,
-            'list'=>$res
+            'total' => $total,
+            'currentPage' => $page,
+            'list' => $res
         ];
         $this->result('success', $result, 200);
     }
@@ -458,36 +458,37 @@ class Sport extends Api
      * 附近
      * @throws \think\Exception
      */
-    public function get_nearby(){
+    public function get_nearby()
+    {
         $keyword = $this->request->post('keyword');
         $page = $this->request->param('page', 1);
         $pageSize = $this->request->param('page_size', 10);
         if (intval($page) < 1) $page = 1;
         $offset = ($page - 1) * intval($pageSize);
-        $where=[];
-        if($keyword){
-            $where['name']=['LIKE','%'.$keyword.'%'];
+        $where = [];
+        if ($keyword) {
+            $where['name'] = ['LIKE', '%' . $keyword . '%'];
         }
         $total = SpotModel::where($where)->count('id');
         $list = SpotModel::Where($where)
             ->order('views', 'desc')
             ->limit($offset, $pageSize)
             ->column('id,name,cover,imgs,content,tel,address,lon,lat,comment,price,views,love');
-        foreach ($list as $k=>$v){
+        foreach ($list as $k => $v) {
             $v['content'] = mb_substr(strip_tags($v['content']), 1, 50);
             $v['imgs'] = explode(',', $v['imgs']);
-            if(!empty($lon)&&!empty($lat)){
-                $s = ceil($this->getDistance($lat,$lon,$v['lat'],$v['lon']));
-                if($s<=1000){
-                    $s = $s.'m';
-                }else{
-                    $s = number_format($s/1000,1).'km';
+            if (!empty($lon) && !empty($lat)) {
+                $s = ceil($this->getDistance($lat, $lon, $v['lat'], $v['lon']));
+                if ($s <= 1000) {
+                    $s = $s . 'm';
+                } else {
+                    $s = number_format($s / 1000, 1) . 'km';
                 }
-                $v['distance'] =$s;
-            }else{
+                $v['distance'] = $s;
+            } else {
                 $v['distance'] = '';
             }
-            $list[$k]= $v;
+            $list[$k] = $v;
         }
         $list = $this->is_recommend($list, 'view');
         $result = [
@@ -503,19 +504,20 @@ class Sport extends Api
      * @throws \think\Exception
      * @throws \think\exception\DbException
      */
-    public function user_info(){
+    public function user_info()
+    {
         $user_id = $this->auth->id;
-        $comment_count = ViewComment::where('user_id',$user_id)->count('id');
-        $love_count= ViewLove::where('user_id',$user_id)->count('id');
-        $browse = ViewBrowse::where('user_id',$user_id)->count('id');
+        $comment_count = ViewComment::where('user_id', $user_id)->count('id');
+        $love_count = ViewLove::where('user_id', $user_id)->count('id');
+        $browse = ViewBrowse::where('user_id', $user_id)->count('id');
         $user = \app\common\model\User::get($user_id);
         $result = [
-            'comment'=>$comment_count,
-            'love'=>$love_count,
-            'browse'=>$browse,
-            'bio'=>$user['bio'],
-            'nickname'=>$user['nickname'],
-            'avatar'=>$user['avatar']
+            'comment' => $comment_count,
+            'love' => $love_count,
+            'browse' => $browse,
+            'bio' => $user['bio'],
+            'nickname' => $user['nickname'],
+            'avatar' => $user['avatar']
         ];
         $this->result('success', $result, 200);
     }
@@ -524,28 +526,29 @@ class Sport extends Api
      * 获取喜爱
      * @throws \think\Exception
      */
-    public function get_love(){
+    public function get_love()
+    {
         $user_id = $this->auth->id;
         $page = $this->request->param('page', 1);
         $pageSize = $this->request->param('page_size', 10);
         if (intval($page) < 1) $page = 1;
         $offset = ($page - 1) * intval($pageSize);
         $ViewLove = new ViewLove();
-        $count = $ViewLove->where('user_id',$user_id)->count('id');
-        $list = $ViewLove->where('user_id',$user_id)
-            ->order('create_time','DESC')
-            ->limit($offset,$pageSize)
+        $count = $ViewLove->where('user_id', $user_id)->count('id');
+        $list = $ViewLove->where('user_id', $user_id)
+            ->order('create_time', 'DESC')
+            ->limit($offset, $pageSize)
             ->column('id,spot_id,create_time,cate');
-        foreach ($list as $k=>$v){
-            if($v['cate']=='view'){
+        foreach ($list as $k => $v) {
+            if ($v['cate'] == 'view') {
                 $res = $ViewLove->getView($v['spot_id']);
-            }elseif ($v['cate']=='mood'){
+            } elseif ($v['cate'] == 'mood') {
                 $res = $ViewLove->getMood($v['spot_id']);
-            }else{
+            } else {
                 $res = $ViewLove->getComment($v['spot_id']);
             }
-            $v = array_merge($v,$res);
-            $list[$k]=$this->cUL($v,false);
+            $v = array_merge($v, $res);
+            $list[$k] = $this->cUL($v, false);
         }
         $result = [
             'total' => $count,
@@ -562,24 +565,25 @@ class Sport extends Api
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
      */
-    public function get_browse(){
+    public function get_browse()
+    {
         $user_id = $this->auth->id;
         $page = $this->request->param('page', 1);
         $pageSize = $this->request->param('page_size', 10);
         if (intval($page) < 1) $page = 1;
         $offset = ($page - 1) * intval($pageSize);
-        $where=[
-            'user_id'=>$user_id
+        $where = [
+            'user_id' => $user_id
         ];
         $total = ViewBrowse::where($where)->count('id');
         $list = ViewBrowse::with(['spot'])->where($where)
-            ->order('create_time','DESC')
-            ->limit($offset,$pageSize)
+            ->order('create_time', 'DESC')
+            ->limit($offset, $pageSize)
             ->select();
         $list = collection($list)->toArray();
-        foreach ($list as $k=>$v){
+        foreach ($list as $k => $v) {
             $v['content'] = mb_substr(strip_tags($v['content']), 1, 50);
-            $list[$k]=$this->cUL($v,false);
+            $list[$k] = $this->cUL($v, false);
         }
         $result = [
             'total' => $total,
