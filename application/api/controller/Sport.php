@@ -15,6 +15,7 @@ use app\common\model\ViewBrowse;
 use app\common\model\ViewComment;
 use app\common\model\ViewLove;
 use app\common\model\ViewMood;
+use think\Cache;
 
 
 /**
@@ -25,7 +26,8 @@ use app\common\model\ViewMood;
 class Sport extends Api
 {
     protected $noNeedLogin = ['get_banner', 'get_list', 'detail',
-        'recommend', 'get_comment', 'get_recomment', 'get_mood', 'get_nearby'];
+        'recommend', 'get_comment', 'get_recomment', 'get_mood',
+        'get_nearby','get_weather'];
 
     protected $noNeedRight = '*';
 
@@ -591,6 +593,62 @@ class Sport extends Api
             'list' => array_values($list)
         ];
         $this->result('success', $result, 200);
+    }
+
+    /**
+     * curl请求
+     * @param string $url
+     * @param null $data
+     * @param array $header
+     * @return bool|string
+     */
+    protected function x_http_request($url = '', $data = null, $header = [])
+    {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+//        curl_setopt($curl, CURLOPT_HEADER, $header);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+        if (!empty($data)) {
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+        }
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        $output = curl_exec($curl);
+        curl_close($curl);
+        return $output;
+    }
+
+
+    /**
+     * 获取24小时温度
+     * @param string $area
+     * @return bool|false|string
+     */
+    public function get_weather()
+    {
+        $area='成都';
+        $appcode = '6b7024d8a4eb4d91b735123bade3d5e6';
+        $host = 'http://saweather.market.alicloudapi.com/area-to-weather?area=';
+        $headers = ['Authorization:APPCODE ' . $appcode];
+        $cache = cache('weather:day:' . $area);
+        if($cache){
+            $this->result('success',json_decode($cache,true),200);
+        }else{
+            $result = $this->x_http_request($host . $area, null, $headers);
+            $result = json_decode($result, true);
+            if ($result['showapi_res_code'] == 0) {
+                $day_list = $result['showapi_res_body'];
+
+                foreach ($day_list as $k=>$v){
+                    $day_list[$k]=$this->cUL($v,false);
+                }
+                Cache::set('weather:day:' . $area,json_encode($day_list),3600*5);
+                $this->result('success',$day_list,200);
+            }
+            $this->error('暂无数据');
+        }
     }
 
 

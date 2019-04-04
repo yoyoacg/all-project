@@ -458,7 +458,7 @@ class Api
      */
     protected function cUL($data=[],$ucfirst=true){
         $list=[];
-        foreach ($data as $k=>$v){
+        foreach ((array)$data as $k=>$v){
             $list[$this->convertUnderline($k,$ucfirst)] = $v;
         }
         return $list;
