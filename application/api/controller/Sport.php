@@ -372,7 +372,7 @@ class Sport extends Api
         $order = 'create_time';
         $sort = 'desc';
         $where = [];
-        if ($type == 'my' && !$user_id) {
+        if ($type == 'my' && $user_id) {
             if ($user_id) {
                 $where['user_id'] = $user_id;
             } else {
