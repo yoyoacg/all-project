@@ -140,16 +140,16 @@ class Auth
             return FALSE;
         }
 
-        if ($email && User::getByEmail($email))
-        {
-            $this->setError('Email already exist');
-            return FALSE;
-        }
-        if ($mobile && User::getByMobile($mobile))
-        {
-            $this->setError('Mobile already exist');
-            return FALSE;
-        }
+//        if ($email && User::getByEmail($email))
+//        {
+//            $this->setError('Email already exist');
+//            return FALSE;
+//        }
+//        if ($mobile && User::getByMobile($mobile))
+//        {
+//            $this->setError('Mobile already exist');
+//            return FALSE;
+//        }
 
         $ip = request()->ip();
         $time = time();
