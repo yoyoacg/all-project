@@ -9,6 +9,7 @@
 namespace app\api\controller;
 
 
+use app\api\library\Base;
 use app\common\controller\Api;
 use app\common\model\cnaps\Bank;
 use app\common\model\cnaps\Canps;
@@ -193,6 +194,24 @@ class Other extends Api
         if ($result['status'] == 0) {
             $this->result('success', $result['results'], 200);
         } else {
+            $this->error('暂无数据');
+        }
+    }
+
+    /**
+     * 获取油价
+     */
+    public function youjia(){
+        $redis = new Base();
+        $list = $redis->handle()->sMembers('youjia_list');
+        if($list){
+            $result=[];
+            foreach ($list as $k=>$v){
+                $res = json_decode($v,true);
+                $result[]=$res;
+            }
+            $this->success('success',$result,200);
+        } else{
             $this->error('暂无数据');
         }
     }

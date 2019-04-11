@@ -39,7 +39,8 @@ class Note extends Api
         $imgs = $this->request->post('imgs');
         if($address||$category||$price||$desc||$create_time){
             $add_data=[
-                'user_id'=>$user_id
+                'user_id'=>$user_id,
+                'random'=>rand(0,5)
             ];
             if($address) $add_data['address']=$address;
             if($category) $add_data['category']=$category;
