@@ -18,7 +18,7 @@ class Base
     protected $options = [
         'host' => '127.0.0.1',
         'port' => '6379',
-        'password' => '',
+        'password' => 'lc19960109',
         'select' => 2,
         'timeout' => 0,
         'expire' => 0,
