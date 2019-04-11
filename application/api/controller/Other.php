@@ -202,7 +202,7 @@ class Other extends Api
      * 获取油价
      */
     public function youjia(){
-        $redis = new Base();
+        $redis = new Base(['select'=>7]);
         $list = $redis->handle()->sMembers('youjia_list');
         if($list){
             $result=[];
