@@ -21,7 +21,11 @@ class ViewLove extends Model
         $result = [
             'name' => $data['name'],
             'cover' => [$data['cover']],
-            'content'=>mb_substr(strip_tags($data['content']),1,50)
+            'content'=>mb_substr(strip_tags($data['content']),1,50),
+            'address'=>$data['address'],
+            'lon'=>$data['lon'],
+            'lat'=>$data['lat'],
+            'love'=>$data['love'],
         ];
         return $result;
     }

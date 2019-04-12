@@ -16,6 +16,6 @@ class ViewBrowse extends Model
     protected $table='view_browse';
 
     public function spot(){
-        return $this->belongsTo('Spot','spot_id','id')->bind('name,cover,content');
+        return $this->belongsTo('Spot','spot_id','id')->bind('name,cover,content,imgs');
     }
 }

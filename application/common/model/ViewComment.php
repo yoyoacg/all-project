@@ -20,7 +20,7 @@ class ViewComment extends Model
     }
 
     public function spot(){
-        return $this->belongsTo('Spot','spot_id','id')->bind('name,cover');
+        return $this->belongsTo('Spot','spot_id','id')->bind('name,cover,imgs');
     }
 
 }

@@ -16,6 +16,7 @@ use app\common\model\ViewComment;
 use app\common\model\ViewLove;
 use app\common\model\ViewMood;
 use think\Cache;
+use think\Request;
 
 
 /**
@@ -30,6 +31,20 @@ class Sport extends Api
         'get_nearby','get_weather'];
 
     protected $noNeedRight = '*';
+
+    protected  $city ;
+
+    protected $city_list=[
+        'chengdu'=>'成都',
+        'xian'=>'西安',
+    ];
+
+    public function __construct(Request $request = null)
+    {
+        parent::__construct($request);
+        $city = $this->request->server('HTTP_CITY','chengdu');
+        $this->city = $this->city_list[$city];
+    }
 
     /**
      * 检测收藏
@@ -102,10 +117,11 @@ class Sport extends Api
         $pageSize = $this->request->param('page_size', 10);
         $lat = $this->request->post('lat', '');
         $lon = $this->request->post('lon', '');
+//        $city = $this->request->post('city','成都');
         if (intval($page) < 1) $page = 1;
         $offset = ($page - 1) * intval($pageSize);
         $where = [
-            'city' => '成都',
+            'city' => $this->city,
             'type' => $type
         ];
         $order = 'love';
@@ -121,6 +137,9 @@ class Sport extends Api
             ->limit($offset, $pageSize)
             ->column('id,name,cover,imgs,content,tel,address,lon,lat,comment,price,views,love');
         foreach ($list as $k => $v) {
+            if(empty($v['cover'])){
+                $v['cover'] = substr($v['imgs'],0,strpos($v['imgs'],','));
+            }
             $v['content'] = mb_substr(strip_tags($v['content']), 1, 50);
             $v['imgs'] = explode(',', $v['imgs']);
             if (!empty($lon) && !empty($lat)) {
@@ -211,9 +230,11 @@ class Sport extends Api
     public function recommend()
     {
         $id = $this->request->post('id');
+//        $city = $this->request->post('city','成都');
         if (empty($id)) $this->error('缺少参数');
         $data = SpotModel::get(intval($id));
         $where = [
+            'city'=>$this->city,
             'type' => $data['type']
         ];
         $list = SpotModel::Where($where)
@@ -221,6 +242,9 @@ class Sport extends Api
             ->limit(0, 10)
             ->column('id,name,cover,imgs,content,tel,address,lon,lat,comment,price,views,love');
         $list = array_map(function ($val) {
+            if(empty($val['cover'])){
+                $val['cover'] = substr($val['imgs'],0,strpos($val['imgs'],','));
+            }
             $val['content'] = mb_substr(strip_tags($val['content']), 1, 50);
             $val['imgs'] = explode(',', $val['imgs']);
             return $val;
@@ -238,12 +262,14 @@ class Sport extends Api
         $user_id = $this->auth->id;
         $content = $this->request->post('content');
         $view_id = $this->request->post('view_id');
+//        $city = $this->request->post('city','成都');
         if (empty($user_id) || empty($content) || empty($view_id)) $this->error('缺少参数');
         $data = [
             'user_id' => $user_id,
             'content' => $content,
             'spot_id' => $view_id,
             'create_time' => date('Y-m-d H:i:s'),
+            'city'=>$this->city
         ];
         if (ViewComment::create($data)) {
             SpotModel::where('id', $view_id)->setInc('comment', 1);
@@ -288,6 +314,9 @@ class Sport extends Api
             ->select();
         $list = collection($list)->toArray();
         foreach ($list as $k => $v) {
+            if(empty($v['cover'])){
+                $v['cover'] = substr($v['imgs'],0,strpos($v['imgs'],','));
+            }
             $list[$k] = $this->cUL($v, false);
         }
         $list = $this->is_recommend($list, 'comment');
@@ -308,11 +337,14 @@ class Sport extends Api
      */
     public function get_recomment()
     {
+//        $city = $this->request->post('city','成都');
         $page = $this->request->param('page', 1);
         $pageSize = $this->request->param('page_size', 10);
         if (intval($page) < 1) $page = 1;
         $offset = ($page - 1) * intval($pageSize);
-        $where = [];
+        $where = [
+            'city'=>$this->city
+        ];
         $total = ViewComment::where($where)->count('id');
         $list = ViewComment::with(['user', 'spot'])
             ->where($where)
@@ -321,6 +353,9 @@ class Sport extends Api
             ->select();
         $list = collection($list)->toArray();
         foreach ($list as $k => $v) {
+            if(empty($v['cover'])){
+                $v['cover'] = substr($v['imgs'],0,strpos($v['imgs'],','));
+            }
             $list[$k] = $this->cUL($v, false);
         }
         $list = $this->is_recommend($list, 'comment');
@@ -345,7 +380,8 @@ class Sport extends Api
             'user_id' => $user_id,
             'content' => mb_substr($content, 0, 250),
             'img' => $img,
-            'create_time' => date('Y-m-d H:i:s')
+            'create_time' => date('Y-m-d H:i:s'),
+            'city'=>$this->city
         ];
         if (ViewMood::create($data)) {
             $this->result('success', null, 200);
@@ -371,7 +407,9 @@ class Sport extends Api
         $offset = ($page - 1) * intval($pageSize);
         $order = 'create_time';
         $sort = 'desc';
-        $where = [];
+        $where = [
+            'city'=>$this->city
+        ];
         if ($type == 'my' && $user_id) {
             if ($user_id) {
                 $where['user_id'] = $user_id;
@@ -462,12 +500,15 @@ class Sport extends Api
      */
     public function get_nearby()
     {
+//        $city=$this->request->post('city','成都');
         $keyword = $this->request->post('keyword');
         $page = $this->request->param('page', 1);
         $pageSize = $this->request->param('page_size', 10);
         if (intval($page) < 1) $page = 1;
         $offset = ($page - 1) * intval($pageSize);
-        $where = [];
+        $where = [
+            'city'=>$this->city
+        ];
         if ($keyword) {
             $where['name'] = ['LIKE', '%' . $keyword . '%'];
         }
@@ -477,6 +518,9 @@ class Sport extends Api
             ->limit($offset, $pageSize)
             ->column('id,name,cover,imgs,content,tel,address,lon,lat,comment,price,views,love');
         foreach ($list as $k => $v) {
+            if(empty($v['cover'])){
+                $v['cover'] = substr($v['imgs'],0,strpos($v['imgs'],','));
+            }
             $v['content'] = mb_substr(strip_tags($v['content']), 1, 50);
             $v['imgs'] = explode(',', $v['imgs']);
             if (!empty($lon) && !empty($lat)) {
@@ -584,6 +628,9 @@ class Sport extends Api
             ->select();
         $list = collection($list)->toArray();
         foreach ($list as $k => $v) {
+            if(empty($v['cover'])){
+                $v['cover'] = substr($v['imgs'],0,strpos($v['imgs'],','));
+            }
             $v['content'] = mb_substr(strip_tags($v['content']), 1, 50);
             $list[$k] = $this->cUL($v, false);
         }
@@ -628,7 +675,7 @@ class Sport extends Api
      */
     public function get_weather()
     {
-        $area='成都';
+        $area=$this->city;
         $appcode = '6b7024d8a4eb4d91b735123bade3d5e6';
         $host = 'http://saweather.market.alicloudapi.com/area-to-weather?area=';
         $headers = ['Authorization:APPCODE ' . $appcode];
