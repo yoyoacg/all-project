@@ -20,7 +20,7 @@ class ViewLove extends Model
         $data = Spot::get($id);
         $result = [
             'name' => $data['name'],
-            'cover' => [$data['cover']],
+            'cover' => $data['cover']??substr($data['imgs'],0,strpos($data['imgs'],',')),
             'content'=>mb_substr(strip_tags($data['content']),1,50),
             'address'=>$data['address'],
             'lon'=>$data['lon'],
@@ -34,12 +34,17 @@ class ViewLove extends Model
     {
         $data = ViewMood::get($id);
         $user = User::get($data['user_id']);
+        $len = strpos($data['img'],',');
         $result = [
             'content' => $data['content'],
-            'cover' => explode(',', $data['img']),
             'avatar' => $user['avatar'],
             'nickname' => $user['nickname'],
         ];
+        if($len){
+            $result['cover'] = substr($data['img'],0,$len);
+        }else{
+            $result['cover'] = $data['img'];
+        }
         return $result;
     }
 
@@ -51,7 +56,7 @@ class ViewLove extends Model
         $result = [
             'name' => $view['name'],
             'content' => $comment['content'],
-            'cover' => explode(',', $view['imgs']),
+            'cover' => substr($view['imgs'],0,strpos($view['imgs'],',')),
             'avatar' => $user['avatar'],
             'nickname' => $user['nickname'],
         ];
