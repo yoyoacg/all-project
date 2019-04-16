@@ -37,7 +37,8 @@ class Sport extends Api
     protected $city_list=[
         'chengdu'=>'成都',
         'xian'=>'西安',
-        'chongqing'=>'重庆'
+        'chongqing'=>'重庆',
+        'lijiang'=>'丽江'
     ];
 
     public function __construct(Request $request = null)
