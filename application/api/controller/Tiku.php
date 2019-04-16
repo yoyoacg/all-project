@@ -104,5 +104,34 @@ class Tiku extends Api
         $this->result('success', $result, 200);
     }
 
+    /**
+     * 获取新消息
+     * @throws \think\Exception
+     */
+    public function get_news(){
+        $city = $this->request->post('city','all');
+        $type = $this->request->post('type','会记');
+        $page = $this->request->param('page', 1);
+        $pageSize = $this->request->param('page_size', 10);
+        if (intval($page) < 1) $page = 1;
+        $offset = ($page - 1) * intval($pageSize);
+        $where = [
+            'city' => $city,
+            'type'=>$type
+        ];
+        $total = ItemInfo::where($where)->count('id');
+        $list = ItemInfo::where($where)
+            ->order('create_time','DESC')
+            ->limit($offset,$pageSize)
+            ->column('id,name,content,create_time createTime');
+        $result = [
+            'total' => $total,
+            'currentPage' => $page,
+            'list' => array_values($list)
+        ];
+        $this->result('success', $result, 200);
+    }
+
+
 
 }
