@@ -67,7 +67,7 @@ class Tiku extends Api
         $list = ItemBank::where($where)
             ->group('rand()')
             ->limit($offset,$pageSize)
-            ->column('id,type,content,val,a,b,c,d,analysis');
+            ->column('id,type,content,val,a,b,c,d,e,analysis');
         $result = [
             'total' => $total,
             'currentPage' => $page,
@@ -150,7 +150,7 @@ class Tiku extends Api
         $list = ItemBank::where($where)
             ->group('rand()')
             ->limit($offset,$pageSize)
-            ->column('id,type,content,val,a,b,c,d,analysis');
+            ->column('id,type,content,val,a,b,c,d,e,analysis');
         $result = [
             'total' => $total,
             'currentPage' => $page,
@@ -158,7 +158,6 @@ class Tiku extends Api
         ];
         $this->result('success', $result, 200);
     }
-
 
 
 
