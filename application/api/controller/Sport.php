@@ -40,6 +40,7 @@ class Sport extends Api
         'chongqing'=>'重庆',
         'lijiang'=>'丽江',
         'gulangyu'=>'鼓浪屿',
+        'sanya'=>'三亚',
     ];
 
     public function __construct(Request $request = null)
