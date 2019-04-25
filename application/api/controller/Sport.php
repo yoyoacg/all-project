@@ -41,7 +41,8 @@ class Sport extends Api
         'lijiang'=>'丽江',
         'gulangyu'=>'鼓浪屿',
         'sanya'=>'三亚',
-        'zhangjiajie'=>'张家界'
+        'zhangjiajie'=>'张家界',
+        'japan'=>'日本'
     ];
 
     public function __construct(Request $request = null)
