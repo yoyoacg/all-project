@@ -11,6 +11,7 @@ namespace app\api\controller;
 
 use app\common\controller\Api;
 use app\common\model\Spot as SpotModel;
+use app\common\model\ViewBlock;
 use app\common\model\ViewBrowse;
 use app\common\model\ViewComment;
 use app\common\model\ViewLove;
@@ -416,6 +417,10 @@ class Sport extends Api
         $where = [
             'city'=>$this->city
         ];
+        if($type=='all'&& !empty($user_id)){
+            $block=ViewBlock::where('user_id',$user_id)->column('mood_id');
+            $where['id']=['NOT IN',$block];
+        }
         if ($type == 'my' && $user_id) {
             if ($user_id) {
                 $where['user_id'] = $user_id;
@@ -703,6 +708,26 @@ class Sport extends Api
             $this->error('暂无数据');
         }
     }
+
+    /**
+     * 心情拉黑
+     */
+    public function block_mood(){
+        $mood_id=$this->request->post('mood_id');
+        if(empty($mood_id)) $this->error('缺少参数');
+        $data=[
+            'user_id'=>$this->auth->id,
+            'mood_id'=>$mood_id
+        ];
+        $is_check=ViewBlock::where($data)->value('id');
+        if($is_check){
+            $this->success('success',null,200);
+        }else{
+            $data['create_time']=date('Y-m-d H:i:s');
+            ViewBlock::create($data);
+            $this->success('success',null,200);
+        }
+     }
 
 
 }
