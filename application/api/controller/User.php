@@ -51,6 +51,7 @@ class User extends Api
             $userinfo = $this->auth->getUserinfo();
             if($userinfo['avatar']=='/assets/img/avatar.png') $userinfo['avatar']='';
             $result = [
+                'userId'=>$userinfo['id'],
                 'username'=>$userinfo['username'],
                 'nickname'=>$userinfo['nickname'],
                 'mobile'=>$userinfo['mobile'],
@@ -164,6 +165,7 @@ class User extends Api
             $userinfo = $this->auth->getUserinfo();
             if($userinfo['avatar']=='/assets/img/avatar.png') $userinfo['avatar']='';
             $result = [
+                'userId'=>$userinfo['id'],
                 'username'=>$userinfo['username'],
                 'nickname'=>$userinfo['nickname'],
                 'mobile'=>$userinfo['mobile'],

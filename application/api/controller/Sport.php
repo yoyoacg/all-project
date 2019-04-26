@@ -418,8 +418,12 @@ class Sport extends Api
             'city'=>$this->city
         ];
         if($type=='all'&& !empty($user_id)){
-            $block=ViewBlock::where('user_id',$user_id)->column('mood_id');
-            $where['id']=['NOT IN',$block];
+            $block_where=[
+                'user_id'=>$user_id,
+                'city'=>$this->city
+            ];
+            $block=ViewBlock::where($block_where)->column('kill_user_id');
+            $where['user_id']=['NOT IN',$block];
         }
         if ($type == 'my' && $user_id) {
             if ($user_id) {
@@ -713,11 +717,12 @@ class Sport extends Api
      * 心情拉黑
      */
     public function block_mood(){
-        $mood_id=$this->request->post('mood_id');
-        if(empty($mood_id)) $this->error('缺少参数');
+        $user_id=$this->request->post('user_id');
+        if(empty($user_id)) $this->error('缺少参数');
         $data=[
             'user_id'=>$this->auth->id,
-            'mood_id'=>$mood_id
+            'kill_user_id'=>$user_id,
+            'city'=>$this->city
         ];
         $is_check=ViewBlock::where($data)->value('id');
         if($is_check){
