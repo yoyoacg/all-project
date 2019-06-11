@@ -21,5 +21,10 @@ class Index extends Api
     {
         $this->success('请求成功');
     }
+    public function getip(){
+        $ip = $this->request->ip();
+        $data=['ip'=>$ip];
+        $this->result('',$data);
+    }
 
 }
