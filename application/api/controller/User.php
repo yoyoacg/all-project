@@ -55,6 +55,7 @@ class User extends Api
                 'username'=>$userinfo['username'],
                 'nickname'=>$userinfo['nickname'],
                 'mobile'=>$userinfo['mobile'],
+                'gender'=>$userinfo['gender'],
                 'avatar'=>$userinfo['avatar'],
                 'token'=>$userinfo['token'],
             ];
