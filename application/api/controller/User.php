@@ -107,6 +107,7 @@ class User extends Api
                 'username'=>$userinfo['username'],
                 'nickname'=>$userinfo['nickname'],
                 'mobile'=>$userinfo['mobile'],
+                'gender'=>$userinfo['gender'],
                 'avatar'=>$userinfo['avatar'],
                 'token'=>$userinfo['token'],
             ];
@@ -170,6 +171,7 @@ class User extends Api
                 'nickname'=>$userinfo['nickname'],
                 'mobile'=>$userinfo['mobile'],
                 'avatar'=>$userinfo['avatar'],
+                'gender'=>$userinfo['gender'],
                 'token'=>$userinfo['token'],
             ];
             $this->success(__('Sign up successful'), $result,200);
@@ -204,6 +206,7 @@ class User extends Api
         $nickname = $this->request->param('nickname',null);
         $bio = $this->request->param('bio',null);
         $avatar = $this->request->param('avatar',null);
+        $gender = $this->request->param('gender',null);
 //        $exists = \app\common\model\User::where(['username'=>$username,'type'=>$user->type])->where('id', '<>', $this->auth->id)->find();
 //        if ($exists)
 //        {
@@ -216,6 +219,7 @@ class User extends Api
         if (!empty($nickname))$user->nickname = $nickname;
         if (!empty($bio)) $user->bio = $bio;
         if (!empty($avatar)) $user->avatar = $avatar;
+        if (!empty($gender)) $user->gender = $gender;
         $user->save();
         $this->success('success',null,200);
     }
