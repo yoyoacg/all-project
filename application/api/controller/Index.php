@@ -3,6 +3,7 @@
 namespace app\api\controller;
 
 use app\common\controller\Api;
+use app\common\model\KeyStorage;
 
 /**
  * 首页接口
@@ -26,5 +27,47 @@ class Index extends Api
         $data=['ip'=>$ip];
         $this->result('',$data);
     }
+
+    /**
+     * 添加自定义存储
+     */
+    public function add_key_storage(){
+        $param= $this->request->param();
+        if(empty($param['key'])||empty($param['values'])||!ctype_alnum($param['key'])) $this->result('fail',null,0);
+        $user_id = isset($param['user_id'])&&is_numeric($param['user_id'])?$param['user_id']:'';
+        $is_exit = KeyStorage::where(['user_id'=>$user_id,'key'=>$param['key']])->value('id');
+        $data=[
+            'key'=>$param['key'],
+            'values'=>$param['values']
+        ];
+        if($is_exit){
+            $data['id']=$is_exit;
+            KeyStorage::update($data);
+        }else{
+            $data['user_id'] = $user_id;
+            $data['create_time'] = date('Y-m-d H:i:s');
+            KeyStorage::create($data);
+        }
+        $this->result('SUCCESS',null,200);
+    }
+
+    public function get_key_storage(){
+        $param= $this->request->param();
+        if(empty($param['user_id'])||empty($param['key'])||!is_numeric($param['user_id'])||!ctype_alpha($param['key'])){
+            $this->result('fail');
+        }
+        $where=[
+            'user_id'=>$param['user_id'],
+            'key'=>$param['key']
+        ];
+        $values = KeyStorage::where($where)->value('values');
+        $result = [
+            'key'=>$param['key'],
+            'values'=>$values
+        ];
+        $this->result('SUCCESS',$result,200);
+    }
+
+
 
 }
