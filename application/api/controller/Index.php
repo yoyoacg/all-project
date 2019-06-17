@@ -11,7 +11,7 @@ use app\common\model\KeyStorage;
 class Index extends Api
 {
 
-    protected $noNeedLogin = ['*'];
+    protected $noNeedLogin = ['index','getip'];
     protected $noNeedRight = ['*'];
 
     /**
@@ -33,8 +33,8 @@ class Index extends Api
      */
     public function add_key_storage(){
         $param= $this->request->param();
+        $user_id = $this->auth->id;
         if(empty($param['key'])||empty($param['values'])||!ctype_alnum($param['key'])) $this->result('fail',null,0);
-        $user_id = isset($param['user_id'])&&is_numeric($param['user_id'])?$param['user_id']:'';
         $is_exit = KeyStorage::where(['user_id'=>$user_id,'key'=>$param['key']])->value('id');
         $data=[
             'key'=>$param['key'],
@@ -51,13 +51,17 @@ class Index extends Api
         $this->result('SUCCESS',null,200);
     }
 
+    /**
+     * 获取自定义键值对
+     */
     public function get_key_storage(){
         $param= $this->request->param();
-        if(empty($param['user_id'])||empty($param['key'])||!is_numeric($param['user_id'])||!ctype_alpha($param['key'])){
+        $user_id = $this->auth->id;
+        if(empty($param['key'])||!ctype_alpha($param['key'])){
             $this->result('fail');
         }
         $where=[
-            'user_id'=>$param['user_id'],
+            'user_id'=>$user_id,
             'key'=>$param['key']
         ];
         $values = KeyStorage::where($where)->value('values');
