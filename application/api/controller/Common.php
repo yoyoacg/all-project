@@ -65,7 +65,7 @@ class Common extends Api
         if($is_cache){
             $this->success(__('Upload successful'), [
                 'url' => $url .$is_cache
-            ]);
+            ],200);
         }
         $upload = Config::get('upload');
 
